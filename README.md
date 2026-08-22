@@ -103,25 +103,24 @@ You can deploy the web version of Productivity Pet Agent directly to Vercel:
 #### 1. Backend Setup
 
 ```bash
-cd backend
-
-# 1. Install dependencies
+# 1. Install dependencies (if not already done)
 pip install -r requirements.txt
 
-# 2. Verify backend .env file
+# 2. Verify .env file
 ```
 
-Example `backend/.env`:
+Example `.env`:
 ```ini
 MEMCODE_API_KEY=your-api-key-here
 MEMCODE_BASE_URL=https://api.memcode.ai/v1
 MEMCODE_MODEL=gpt-4o-mini
 DATABASE_URL=
 CORS_ORIGINS=http://localhost:5173
+VITE_API_URL=http://localhost:8000
 ```
 
 ```bash
-# 3. Start the FastAPI server
+# 3. Start the FastAPI server (keep this terminal open)
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -129,9 +128,9 @@ uvicorn app.main:app --reload --port 8000
 
 ### 2. Frontend & Web Mode
 
-```bash
-cd frontend
+Open a **new terminal** in the root directory:
 
+```bash
 # 1. Install dependencies
 npm install
 
@@ -149,7 +148,6 @@ You have two ways to run the desktop companion:
 
 #### Option A: Native Tauri App (Always-On-Top Windows Executable)
 ```bash
-cd frontend
 npm run tauri:dev
 ```
 *(Requires Rust `cargo` installed on your machine. Builds the native transparent Windows desktop executable.)*
@@ -167,7 +165,6 @@ npm run tauri:dev
 Run the comprehensive backend test suite:
 
 ```bash
-cd backend
 python -m pytest tests/ -v
 ```
 

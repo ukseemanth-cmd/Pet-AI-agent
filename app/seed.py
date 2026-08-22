@@ -1,4 +1,4 @@
-"""Seed database with realistic demo data."""
+﻿"""Seed database with realistic demo data."""
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session
 from app.models.models import (
@@ -15,9 +15,9 @@ def seed_if_empty(db: Session):
     if user_count > 0:
         return
 
-    print("🌱 Seeding demo data...")
+    print(" Seeding demo data...")
     _seed_demo_data(db)
-    print("✅ Demo data seeded successfully!")
+    print(" Demo data seeded successfully!")
 
 
 def _seed_demo_data(db: Session):

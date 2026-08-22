@@ -1,4 +1,4 @@
-"""Productivity Pet — FastAPI Application Entry Point."""
+﻿"""Productivity Pet — FastAPI Application Entry Point."""
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,7 +55,7 @@ def startup():
         db.close()
 
     logger.info("AI provider configured: %s", "YES" if settings.ai_available else "NO (using fallbacks)")
-    logger.info("Productivity Pet API ready 🐾")
+    logger.info("Productivity Pet API ready ")
 
 
 @app.get("/")
