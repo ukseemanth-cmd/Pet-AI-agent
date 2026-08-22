@@ -82,15 +82,25 @@ Productivity Pet is not a generic Todo app with a mascot attached. **The Pet its
 
 ---
 
-## 🚀 Quick Start Guide
+## Quick Start 🚀
 
-### Prerequisites
-- **Python 3.10+**
-- **Node.js 18+** & **npm**
+### 1. One-Click Vercel Deployment
+
+You can deploy the web version of Productivity Pet Agent directly to Vercel:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fukseemanth-cmd%2FProductivity-Pet-Agent&env=MEMCODE_API_KEY,DATABASE_URL)
+
+**Required Environment Variables:**
+- `MEMCODE_API_KEY`: Your API key for Memcode / AI provider.
+- `DATABASE_URL`: A PostgreSQL connection string for database persistence (e.g., from Vercel Postgres or Supabase).
 
 ---
 
-### 1. Backend Setup
+### Local Setup (Web Mode)
+- **Python 3.10+**
+- **Node.js 18+** & **npm**
+
+#### 1. Backend Setup
 
 ```bash
 cd backend

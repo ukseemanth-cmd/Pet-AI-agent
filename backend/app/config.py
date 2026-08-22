@@ -29,7 +29,8 @@ class Settings(BaseSettings):
     def db_url(self) -> str:
         """Return database URL, defaulting to SQLite for local dev."""
         if self.database_url:
-            return self.database_url
+            # SQLAlchemy 1.4+ requires postgresql:// instead of postgres://
+            return self.database_url.replace("postgres://", "postgresql://", 1)
         db_path = Path(__file__).resolve().parent.parent / "productivity_pet.db"
         return f"sqlite:///{db_path}"
 

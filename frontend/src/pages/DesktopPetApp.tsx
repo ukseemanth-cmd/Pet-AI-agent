@@ -112,7 +112,8 @@ export const DesktopPetApp: React.FC = () => {
   };
 
   const handleOpenWebApp = () => {
-    window.open('http://localhost:5173', '_blank');
+    const url = import.meta.env.PROD ? window.location.origin : 'http://localhost:5173';
+    window.open(url, '_blank');
   };
 
   const currentPetState = overrideState || petData?.pet.state || 'idle';
