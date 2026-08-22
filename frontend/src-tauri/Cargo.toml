@@ -1,0 +1,17 @@
+[package]
+name = "productivity-pet-desktop"
+version = "1.0.0"
+description = "Productivity Pet — Living Autonomous Desktop AI Companion"
+authors = ["Productivity Pet Team"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri = { version = "1.5", features = [ "system-tray", "window-set-always-on-top", "window-start-dragging", "window-set-resizable", "window-set-decorations" ] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]

@@ -1,85 +1,72 @@
 # System Architecture — Productivity Pet
 
-This document details the architectural layers and data flow of **Productivity Pet**.
+This document details the architectural layers and data flow of **Productivity Pet**, including Web Dashboard Mode and True Desktop Companion Mode.
 
 ---
 
 ## 1. End-to-End Execution Flow
 
 ```
-┌───────────────────┐
-│     User Goal     │  (e.g., "I need to finish my ML project")
-└─────────┬─────────┘
-          │ (REST POST /api/agent/chat)
-          ▼
-┌───────────────────┐
-│ FastAPI Gateway   │
-└─────────┬─────────┘
-          │
-          ▼
-┌───────────────────────────────────────────────┐
-│            Agent Orchestrator                 │
-│  1. Intent Detection (Goal Breakdown)        │
-│  2. Context Retrieval (Active tasks & stats)  │
-│  3. Memory Extraction (Past patterns)         │
-└─────────┬─────────────────────────┬───────────┘
-          │                         │
-          ▼                         ▼
-┌───────────────────┐     ┌───────────────────┐
-│    AI Provider    │     │   Memory Layer    │
-│  (MemCode Client) │     │ (DB Context Cache)│
-└─────────┬─────────┘     └─────────┬─────────┘
-          │                         │
-          ▼                         │
-┌───────────────────────────────────▼───────────┐
-│              Structured Plan                  │
-│    (Goal difficulty, tasks, XP, action)       │
-└───────────────────┬───────────────────────────┘
-          │
-          ▼
-┌───────────────────┐
-│  Behavior Engine  │ ◄─── Observes task completions, focus minutes, consistency
-└─────────┬─────────┘
-          │
-          ├─────────────────────────┐
-          ▼                         ▼
-┌───────────────────┐     ┌───────────────────┐
-│     Pet State     │     │  Database Update  │
-│ (Happy, Focused,  │     │ (SQLite/Postgres) │
-│  Excited, etc.)   │     └───────────────────┘
-└─────────┬─────────┘
-          │
-          ▼
-┌───────────────────┐
-│  React Dashboard  │
-│ (Live Pet Action, │
-│  XP, Audio, HUD)  │
-└───────────────────┘
+┌────────────────────────────────────────────────────────┐
+│                      User Action                       │
+│    (Web Dashboard or Desktop Companion AI Command)     │
+└───────────┬────────────────────────────────┬───────────┘
+            │                                │
+            ▼ (REST POST /api/agent/chat)    ▼ (REST POST /api/tasks/:id/complete)
+┌────────────────────────────────────────────────────────┐
+│                   FastAPI Gateway                      │
+└───────────┬────────────────────────────────┬───────────┘
+            │                                │
+            ▼                                ▼
+┌───────────────────────────────────┐  ┌───────────────────────────────────┐
+│        Agent Orchestrator         │  │          Behavior Engine          │
+│ • Intent Detection                │  │ • Productivity Score (0-100)      │
+│ • Context Retrieval & Memory      │  │ • Energy & Happiness              │
+│ • AI Plan / Next Action           │  │ • Pet State (11 animation modes)  │
+└───────────┬───────────────────────┘  │ • XP & Level Progression          │
+            │                          └─────────────┬─────────────────────┘
+            ▼                                        ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                   SQLite / PostgreSQL Database Layer                     │
+│        (users, pets, tasks, goals, focus_sessions, daily_stats...)       │
+└───────────┬────────────────────────────────┬─────────────────────────────┘
+            │                                │
+            ▼                                ▼
+┌───────────────────────────────────┐  ┌───────────────────────────────────┐
+│        React Web Dashboard        │  │     Tauri Desktop Companion       │
+│ • Living Companion Canvas         │  │ • Transparent & Frameless         │
+│ • Full Backlog & Focus Chamber    │  │ • Always-On-Top Windows Window    │
+│ • Analytics & Milestones          │  │ • Native Dragging & Auto-Sync     │
+└───────────────────────────────────┘  └───────────────────────────────────┘
 ```
 
 ---
 
 ## 2. Core Subsystems
 
-### A. Frontend Layer (`frontend/`)
-- **Technology**: React 18, Vite, TypeScript, Tailwind CSS, Framer Motion, Recharts, Lucide React.
-- **Pet Mascot Renderer (`PetRenderer.tsx`)**: Custom layered SVG avatar featuring dynamic eye shapes, floating antennae, pulsating arc reactor core, and animated particle states.
-- **Audio Synthesizer (`audio.ts`)**: Built on native browser Web Audio API to create zero-latency micro-interaction sound cues without audio file downloads.
-- **State Management**: React state hooks synchronized via TanStack Query and standard REST API clients.
+### A. Dual Presentation Layer (`frontend/`)
+- **Web Dashboard Mode**: Full productivity operating system with ⌘K command bar, task manager, focus room, charts, and gamification gallery.
+- **Desktop Pet Mode (`DesktopPetApp.tsx` & `src-tauri/`)**:
+  - Transparent, frameless window.
+  - Native window dragging with `data-tauri-drag-region`.
+  - Stays always-on-top above IDEs (e.g. VS Code) and browser windows.
+  - Background auto-sync with `/api/pet` and `/api/tasks`.
+  - System tray menu with companion visibility and quick focus controls.
 
-### B. API & Agent Layer (`backend/app/routes/` & `services/`)
+### B. Living Companion Renderer (`PetRenderer.tsx`)
+- High-performance, lightweight SVG Framer Motion avatar.
+- 11 distinct animation states (`idle`, `thinking`, `happy`, `excited`, `sleepy`, `tired`, `concerned`, `celebrating`, `encouraging`, `working`, `focused`).
+- Dynamically rendered across both the web dashboard and native desktop companion window.
+
+### C. Agent & AI Provider Layer (`backend/app/services/`)
 - **`agent_service.py`**: Coordinates intent detection, memory extraction, system prompt generation, and response assembly.
-- **`ai_provider.py`**: Clean interface wrapping AI models with deterministic fallbacks when offline.
-- **`memcode_client.py`**: Isolated OpenAI-compatible HTTP client honoring `MEMCODE_BASE_URL`, `MEMCODE_API_KEY`, and `MEMCODE_MODEL`.
-- **`memory_service.py`**: Stores interaction context, preferences, and session summaries.
+- **`ai_provider.py` & `memcode_client.py`**: Isolated OpenAI-compatible HTTP client for MemCode with deterministic fallbacks.
+- **`memory_service.py`**: Context retrieval and preference cache.
 
-### C. Behavior & Gamification Engine (`behavior_engine.py`)
+### D. Behavior & Gamification Engine (`behavior_engine.py`)
 - Calculates deterministic metrics:
   - **Productivity Score** = $f(\text{Completion Rate}, \text{Difficulty}, \text{Focus Time}, \text{Consistency}, \text{Recency})$
   - **Energy** = $f(\text{Activity Density}, \text{Daily Load})$
   - **Happiness** = $f(\text{Streak Momentum}, \text{Recent Wins}, \text{Inactivity Recovery})$
   - **Pet State** = Prioritized state machine evaluating immediate user action vs. historical energy/consistency.
   - **XP & Levels** = Step progression with quadratic growth.
-
-### D. Relational Data Layer (`models.py`)
-- **Tables**: `users`, `pets`, `goals`, `tasks`, `focus_sessions`, `productivity_events`, `daily_stats`, `xp_transactions`, `achievements`, `user_achievements`, `memories`, `agent_sessions`, `agent_messages`.

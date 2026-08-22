@@ -10,6 +10,7 @@ interface MainLayoutProps {
   petData?: PetFullData | null;
   tasksCount?: number;
   onRefresh?: () => void;
+  onOpenDesktopPet?: () => void;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({
@@ -19,6 +20,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   petData,
   tasksCount = 0,
   onRefresh,
+  onOpenDesktopPet,
 }) => {
   return (
     <div className="min-h-screen bg-[#08090f] text-slate-100 flex flex-col relative overflow-hidden font-sans">
@@ -27,7 +29,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       <div className="fixed bottom-[-100px] right-1/4 w-[500px] h-[500px] rounded-full bg-purple-600/10 filter blur-[140px] pointer-events-none" />
 
       {/* Top Bar */}
-      <TopBar petData={petData} onRefresh={onRefresh} />
+      <TopBar petData={petData} onRefresh={onRefresh} onOpenDesktopPet={onOpenDesktopPet} />
 
       {/* Main Body */}
       <div className="flex-1 flex flex-col-reverse md:flex-row overflow-hidden relative z-10">

@@ -6,12 +6,15 @@ import { LevelBadge } from '../Gamification/LevelBadge';
 import { StreakDisplay } from '../Gamification/StreakDisplay';
 import { sound } from '../../utils/audio';
 
+import { Monitor } from 'lucide-react';
+
 interface TopBarProps {
   petData?: PetFullData | null;
   onRefresh?: () => void;
+  onOpenDesktopPet?: () => void;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ petData, onRefresh }) => {
+export const TopBar: React.FC<TopBarProps> = ({ petData, onRefresh, onOpenDesktopPet }) => {
   const [isMuted, setIsMuted] = useState(sound.getMuted());
 
   const toggleSound = () => {
@@ -46,6 +49,18 @@ export const TopBar: React.FC<TopBarProps> = ({ petData, onRefresh }) => {
 
       {/* Right: Gamification HUD (XP, Level, Streak, Controls) */}
       <div className="flex items-center gap-3 sm:gap-4">
+        {/* Open Desktop Pet Button */}
+        {onOpenDesktopPet && (
+          <button
+            onClick={onOpenDesktopPet}
+            className="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+            title="Open Standalone Desktop Pet"
+          >
+            <Monitor className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="hidden sm:inline">Desktop Pet</span>
+          </button>
+        )}
+
         {/* XP Bar */}
         <div className="hidden md:block">
           <XPBar currentXP={xp} level={level} xpForNextLevel={nextLevelXP} />

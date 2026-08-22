@@ -6,6 +6,8 @@ import { TasksPage } from './pages/TasksPage';
 import { FocusPage } from './pages/FocusPage';
 import { ProgressPage } from './pages/ProgressPage';
 import { AchievementsPage } from './pages/AchievementsPage';
+import { DesktopPetApp } from './pages/DesktopPetApp';
+import { DesktopLauncherModal } from './components/DesktopPet/DesktopLauncherModal';
 import { FocusTimer } from './components/Focus/FocusTimer';
 import { FloatingPet } from './components/FloatingPet/FloatingPet';
 import { PetFullData, Task } from './services/types';
@@ -13,10 +15,21 @@ import { getPet, getTasks, getGoals, startFocusSession, completeFocusSession } f
 import { eventBus } from './utils/events';
 
 export function App() {
+  // Check if running in dedicated Standalone Desktop Pet Mode (e.g. Tauri window or popup mode)
+  const isDesktopMode =
+    typeof window !== 'undefined' &&
+    (window.location.search.includes('mode=desktop') ||
+      (window as any).__IS_DESKTOP_PET__ === true);
+
+  if (isDesktopMode) {
+    return <DesktopPetApp />;
+  }
+
   const [activeTab, setActiveTab] = useState<TabType>('agent');
   const [petData, setPetData] = useState<PetFullData | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [goals, setGoals] = useState<any[]>([]);
+  const [isDesktopModalOpen, setIsDesktopModalOpen] = useState(false);
 
   // Focus Mode State
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -97,6 +110,7 @@ export function App() {
         petData={petData}
         tasksCount={tasks.filter((t) => t.status !== 'completed').length}
         onRefresh={loadData}
+        onOpenDesktopPet={() => setIsDesktopModalOpen(true)}
       >
         {activeTab === 'agent' && (
           <AgentPage
@@ -121,7 +135,7 @@ export function App() {
         {activeTab === 'achievements' && <AchievementsPage />}
       </MainLayout>
 
-      {/* Floating Desktop AI Companion Overlay (Codex-style persistent agent) */}
+      {/* Floating In-App AI Companion Overlay (Codex-style persistent agent) */}
       <FloatingPet
         petState={petData?.pet.state}
         petMessage={petData?.pet.current_message}
@@ -132,6 +146,12 @@ export function App() {
         tasks={tasks}
         onRefreshData={loadData}
         onStartFocus={handleStartFocus}
+      />
+
+      {/* Standalone Desktop Pet Launcher Modal */}
+      <DesktopLauncherModal
+        isOpen={isDesktopModalOpen}
+        onClose={() => setIsDesktopModalOpen(false)}
       />
 
       {/* Immersive Focus Mode Fullscreen Overlay */}
@@ -148,4 +168,3 @@ export function App() {
 }
 
 export default App;
-

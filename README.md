@@ -1,6 +1,6 @@
 # Productivity Pet — Living AI Productivity Agent
 
-> A virtual companion that is your autonomous AI productivity agent.
+> A virtual companion that is your autonomous AI productivity agent & persistent Windows desktop companion.
 
 Productivity Pet is not a generic Todo app with a mascot attached. **The Pet itself is the AI Agent.** It understands high-level human goals, breaks them down into structured work, monitors behavioral signals, reacts emotionally to progress and inactivity, manages deep focus sessions, awards XP and achievements, and continuously learns user patterns through a persistent memory layer.
 
@@ -19,21 +19,29 @@ Productivity Pet is not a generic Todo app with a mascot attached. **The Pet its
    - Real behavioral scoring algorithm calculates **Productivity Score (0-100)**, **Energy (%)**, **Happiness (%)**, and **Focus Score (%)** from completion consistency, focus minutes, goal difficulty, streaks, and recovery behavior.
    - Backend is the single source of truth (zero hardcoded/client-calculated scores).
 
-3. **Gamification & Streak Mechanics**:
+3. **🖥️ True Desktop Floating Pet Mode (Tauri + Standalone)**:
+   - **Always-On-Top Windows Companion**: The pet stays hovering above VS Code, Chrome, or any desktop window even when the main browser is minimized or closed.
+   - **Transparent & Frameless**: Zero browser chrome or white rectangular frames. Only the living avatar and its energy aura appear on your desktop.
+   - **Native Dragging & Persistence**: Drag anywhere on screen; position is automatically remembered across reboots.
+   - **Interactive Desktop AI Bubble**: Click the desktop pet to reveal quick actions (*"Plan My Day"*, *"Start 25m Focus"*, *"What's Next?"*, *"Motivation"*) or type custom requests.
+   - **Real-Time Synchronized State**: Completing tasks in the web dashboard or API immediately triggers celebrations and floating +XP particle bursts on your desktop pet.
+   - **System Tray Integration**: Background tray menu with Show/Hide, Start Focus, Web Workspace, and Quit options.
+
+4. **Gamification & Streak Mechanics**:
    - Task completion triggers XP gain, level-up milestones, audio cues, and confetti celebrations.
    - 7-day visual calendar streak tracker.
    - Supportive recovery behavior: Pet becomes `concerned` after 3+ days away and gently suggests one small win instead of guilt.
    - Full achievement trophy room with real-time progress tracking.
 
-4. **Immersive Deep Focus Protocol**:
+5. **Immersive Deep Focus Protocol**:
    - Full-screen distraction-free focus workspace.
    - Enlarged focused companion, calming ambient aura, live countdown timer, and XP payout upon completion.
 
-5. **Persistent Memory & Context Layer**:
+6. **Persistent Memory & Context Layer**:
    - Remembers user preferences, project context, working habits, and past milestones.
    - Database-backed fallback ensuring zero external dependencies during offline development.
 
-6. **Web Audio Synthesizer**:
+7. **Web Audio Synthesizer**:
    - Satisfying synthesized sound effects for task completions, level-ups, focus chimes, and AI thinking blips without external audio asset downloads.
 
 ---
@@ -44,8 +52,13 @@ Productivity Pet is not a generic Todo app with a mascot attached. **The Pet its
 ┌────────────────────────────────────────────────────────┐
 │                   React 18 + Vite                      │
 │     (TypeScript, Tailwind CSS, Framer Motion)         │
-└───────────────────────────┬────────────────────────────┘
-                            │ REST APIs
+├───────────────────────────┬────────────────────────────┤
+│     Web Dashboard Mode    │   Tauri Desktop Companion  │
+│  (Full Productivity OS)   │  (Transparent / Frameless) │
+└─────────────┬─────────────┴─────────────┬──────────────┘
+              │                           │
+              └─────────────┬─────────────┘
+                            │ REST APIs (Zero Secrets in Frontend)
 ┌───────────────────────────▼────────────────────────────┐
 │                  FastAPI Backend                       │
 │  ┌──────────────────────────────────────────────────┐  │
@@ -85,8 +98,7 @@ cd backend
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Verify or create your backend .env file
-# (Copy from .env.example if needed)
+# 2. Verify backend .env file
 ```
 
 Example `backend/.env`:
@@ -98,18 +110,14 @@ DATABASE_URL=
 CORS_ORIGINS=http://localhost:5173
 ```
 
-> 🔒 **Security Notice**: AI provider credentials live **exclusively in `backend/.env`**. They are never exposed to the frontend bundle or client localStorage.
-
 ```bash
 # 3. Start the FastAPI server
 uvicorn app.main:app --reload --port 8000
 ```
 
-The server will automatically initialize SQLite with demo data and start at `http://localhost:8000`.
-
 ---
 
-### 2. Frontend Setup
+### 2. Frontend & Web Mode
 
 ```bash
 cd frontend
@@ -125,9 +133,28 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 🧪 Testing
+### 3. True Desktop Floating Companion Mode
 
-Run the comprehensive unit and integration test suite:
+You have two ways to run the desktop companion:
+
+#### Option A: Native Tauri App (Always-On-Top Windows Executable)
+```bash
+cd frontend
+npm run tauri:dev
+```
+*(Requires Rust `cargo` installed on your machine. Builds the native transparent Windows desktop executable.)*
+
+#### Option B: Standalone Popout Window (Instant Zero-Install Mode)
+1. Open [http://localhost:5173](http://localhost:5173)
+2. Click the **"Desktop Pet"** button in the top navigation bar.
+3. Click **"Launch Floating Companion Window"** (or open `http://localhost:5173/?mode=desktop`).
+4. A standalone frameless floating companion pops out on your desktop!
+
+---
+
+## 🧪 Automated Testing
+
+Run the comprehensive backend test suite:
 
 ```bash
 cd backend
@@ -140,26 +167,3 @@ Tests verify:
 - ✅ Behavior Engine scoring and emotional pet states
 - ✅ Achievement evaluation
 - ✅ Agent chat and fallback resilience
-
----
-
-## 🎬 30-Second Hackathon Demo Flow
-
-1. **First Glance**:
-   - Open [http://localhost:5173](http://localhost:5173).
-   - Notice Nova breathing, the real-time HUD (Productivity 68, Energy 72%, Happiness 78%, Focus 65%), LVL 7 badge, and 5-day streak.
-2. **AI Goal Breakdown**:
-   - Click the prompt chip **"Finish ML project"** or type `I need to finish my ML project.` in the command bar (or press `⌘K` / `Ctrl+K`).
-   - Observe Nova entering the **THINKING** state with live activity statuses: *Understanding your goal → Checking workload → Building plan → Choosing next action*.
-   - Nova becomes **ENCOURAGING** and reveals the structured **Plan Card** with XP rewards and time estimates.
-3. **Execute & Observe**:
-   - Click **"Add All to Tasks"** or **"Start Now"**.
-   - Tasks are populated in the active backlog.
-   - Click the checkmark on any task — listen to the synthesized chime, watch the +XP animation, level badge progress, and observe Nova transitioning to **EXCITED** or **CELEBRATING**.
-4. **Deep Focus Chamber**:
-   - Navigate to the **Focus** tab or click the Play icon next to a task.
-   - Enter the full-screen Focus Room with the enlarged concentrated companion and countdown timer.
-   - Complete or exit to claim deep focus XP.
-5. **Analytics & Milestones**:
-   - Visit the **Progress** tab to inspect the glowing productivity trend and focus distributions.
-   - Visit **Achieve** to review unlocked badges.
