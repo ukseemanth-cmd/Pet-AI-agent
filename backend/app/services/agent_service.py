@@ -62,6 +62,15 @@ def _get_user_context(db: Session, user_id: int) -> dict:
         "goals": goals_data,
         "tasks": tasks_data,
         "stats": stats,
+        "companion": {
+            "pet_type": pet_obj.pet_type if pet_obj else "nova",
+            "pet_name": pet_obj.name if pet_obj else "Nova",
+            "personality": pet_obj.personality if pet_obj else "balanced",
+        } if (pet_obj := db.query(Pet).filter(Pet.user_id == user_id).first()) else {
+            "pet_type": "nova",
+            "pet_name": "Nova",
+            "personality": "balanced",
+        },
     }
 
 
@@ -143,6 +152,8 @@ async def process_chat(db: Session, user_id: int, message: str) -> dict:
 def _fallback_response(message: str, context: dict) -> dict:
     """Deterministic fallback when AI is unavailable."""
     msg_lower = message.lower()
+    companion = context.get("companion", {})
+    name = companion.get("pet_name") or "Nova"
 
     # Intent detection via keywords
     if any(kw in msg_lower for kw in ["finish", "complete", "build", "create", "project", "goal", "need to", "want to", "have to"]):
@@ -150,11 +161,11 @@ def _fallback_response(message: str, context: dict) -> dict:
         goal_title = message.strip().rstrip(".")
         if goal_title.lower().startswith(("i need to ", "i want to ", "i have to ", "help me ")):
             goal_title = goal_title.split(" ", 3)[-1] if len(goal_title.split(" ", 3)) > 3 else goal_title
-        return ai_provider.fallback_goal_breakdown(goal_title.title())
+        return ai_provider.fallback_goal_breakdown(goal_title.title(), companion)
 
     elif any(kw in msg_lower for kw in ["what should", "next", "suggest", "recommend"]):
         tasks = context.get("tasks", [])
-        action = ai_provider.fallback_next_action(tasks)
+        action = ai_provider.fallback_next_action(tasks, companion)
         return {
             "intent": "next_action",
             "message": action,
@@ -164,7 +175,7 @@ def _fallback_response(message: str, context: dict) -> dict:
 
     elif any(kw in msg_lower for kw in ["motivat", "procrastinat", "stuck", "behind", "can't", "struggling"]):
         stats = context.get("stats", {})
-        motivation = ai_provider.fallback_motivation(stats)
+        motivation = ai_provider.fallback_motivation(stats, companion)
         return {
             "intent": "motivation",
             "message": motivation,
@@ -178,29 +189,30 @@ def _fallback_response(message: str, context: dict) -> dict:
             task_list = ", ".join(t["title"] for t in tasks[:3])
             return {
                 "intent": "daily_planning",
-                "message": f"Here's what's on your plate: {task_list}. Let's start with the first one.",
+                "message": f"Here's what's on your queue: {task_list}. Let's start with the first one.",
                 "pet_state": "encouraging",
                 "next_action": f"Start with: {tasks[0]['title']}",
             }
         return {
             "intent": "daily_planning",
-            "message": "Your slate is clean! Tell me what you want to accomplish today.",
+            "message": f"{name} is ready! What would you like to accomplish today?",
             "pet_state": "happy",
         }
 
     elif any(kw in msg_lower for kw in ["focus", "concentrate", "pomodoro", "timer"]):
         return {
             "intent": "focus_recommendation",
-            "message": "Let's do a 25-minute focus session. Pick a task and let's lock in.",
+            "message": "Let's do a 25-minute focus session. Pick a task and let's lock in together.",
             "pet_state": "focused",
         }
 
     else:
         return {
             "intent": "general",
-            "message": "I'm here to help! Tell me about a goal you want to accomplish, or ask me to plan your day.",
+            "message": f"{name} is here to help! Tell me about a goal you want to achieve, or ask me to plan your day.",
             "pet_state": "idle",
         }
+
 
 
 async def breakdown_goal(db: Session, user_id: int, goal_title: str) -> dict:

@@ -10,12 +10,16 @@ import { DesktopPetApp } from './pages/DesktopPetApp';
 import { DesktopLauncherModal } from './components/DesktopPet/DesktopLauncherModal';
 import { FocusTimer } from './components/Focus/FocusTimer';
 import { FloatingPet } from './components/FloatingPet/FloatingPet';
+import { OnboardingFlow } from './components/PetCustomization/OnboardingFlow';
 import { PetFullData, Task } from './services/types';
 import { getPet, getTasks, getGoals, startFocusSession, completeFocusSession } from './services/api';
 import { eventBus } from './utils/events';
+import { CompanionProvider, useCompanion } from './context/CompanionContext';
+import { AnimatePresence } from 'framer-motion';
 
-export function App() {
-  // Check if running in dedicated Standalone Desktop Pet Mode (e.g. Tauri window or popup mode)
+// ── Inner App — wrapped by CompanionProvider ────────────────
+function InnerApp() {
+  // Check if running in dedicated Standalone Desktop Pet Mode
   const isDesktopMode =
     typeof window !== 'undefined' &&
     (window.location.search.includes('mode=desktop') ||
@@ -25,11 +29,14 @@ export function App() {
     return <DesktopPetApp />;
   }
 
+  const { needsOnboarding, isLoading: companionLoading } = useCompanion();
+
   const [activeTab, setActiveTab] = useState<TabType>('agent');
   const [petData, setPetData] = useState<PetFullData | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [goals, setGoals] = useState<any[]>([]);
   const [isDesktopModalOpen, setIsDesktopModalOpen] = useState(false);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
 
   // Focus Mode State
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -71,7 +78,6 @@ export function App() {
       eventBus.emit('FOCUS_STARTED', { duration, taskTitle: task?.title });
     } catch (err) {
       console.error('Failed to start focus session:', err);
-      // Fallback: still open timer
       setIsFocusMode(true);
       eventBus.emit('FOCUS_STARTED', { duration, taskTitle: task?.title });
     }
@@ -102,8 +108,19 @@ export function App() {
     loadData();
   };
 
+  // Show onboarding if needed (after loading complete)
+  const showOnboarding = !companionLoading && needsOnboarding && !onboardingComplete;
+
   return (
     <>
+      {/* Onboarding Gate */}
+      <AnimatePresence>
+        {showOnboarding && (
+          <OnboardingFlow onComplete={() => setOnboardingComplete(true)} />
+        )}
+      </AnimatePresence>
+
+      {/* Main App (rendered under onboarding, no interference) */}
       <MainLayout
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -135,7 +152,7 @@ export function App() {
         {activeTab === 'achievements' && <AchievementsPage />}
       </MainLayout>
 
-      {/* Floating In-App AI Companion Overlay (Codex-style persistent agent) */}
+      {/* Floating In-App AI Companion Overlay */}
       <FloatingPet
         petState={petData?.pet.state}
         petMessage={petData?.pet.current_message}
@@ -148,7 +165,7 @@ export function App() {
         onStartFocus={handleStartFocus}
       />
 
-      {/* Standalone Desktop Pet Launcher Modal */}
+      {/* Desktop Pet Launcher Modal */}
       <DesktopLauncherModal
         isOpen={isDesktopModalOpen}
         onClose={() => setIsDesktopModalOpen(false)}
@@ -164,6 +181,15 @@ export function App() {
         />
       )}
     </>
+  );
+}
+
+// ── Root App — provides companion context ────────────────────
+export function App() {
+  return (
+    <CompanionProvider>
+      <InnerApp />
+    </CompanionProvider>
   );
 }
 

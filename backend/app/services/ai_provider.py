@@ -1,6 +1,6 @@
 """
 AI Provider — Clean abstraction over the AI service.
-Implements specialized functions for different agent capabilities.
+Implements specialized functions for different agent capabilities with full companion personality integration.
 Falls back to deterministic responses when AI is unavailable.
 """
 import json
@@ -8,12 +8,11 @@ import logging
 from typing import Optional
 from app.integrations import memcode_client
 from app.services.prompts import (
-    GOAL_BREAKDOWN_PROMPT,
-    MOTIVATION_PROMPT,
-    INSIGHT_PROMPT,
-    NEXT_ACTION_PROMPT,
-    DAILY_PLANNING_PROMPT,
-    AGENT_CHAT_PROMPT,
+    build_agent_chat_prompt,
+    build_goal_breakdown_prompt,
+    build_motivation_prompt,
+    build_insight_prompt,
+    build_next_action_prompt,
 )
 
 logger = logging.getLogger(__name__)
@@ -27,7 +26,8 @@ async def generate_agent_response(
     Generate a full agent response to a user message.
     Returns structured JSON with intent, plan, message, pet_state.
     """
-    system_prompt = AGENT_CHAT_PROMPT.format(
+    companion = context.get("companion", {})
+    system_prompt = build_agent_chat_prompt(companion).format(
         goals=json.dumps(context.get("goals", []), default=str),
         tasks=json.dumps(context.get("tasks", []), default=str),
         stats=json.dumps(context.get("stats", {}), default=str),
@@ -50,7 +50,8 @@ async def break_down_goal(
     context: dict,
 ) -> Optional[dict]:
     """Break down a goal into actionable tasks."""
-    system_prompt = GOAL_BREAKDOWN_PROMPT.format(
+    companion = context.get("companion", {})
+    system_prompt = build_goal_breakdown_prompt(companion).format(
         current_tasks=json.dumps(context.get("tasks", []), default=str),
         stats=json.dumps(context.get("stats", {}), default=str),
     )
@@ -70,7 +71,8 @@ async def generate_motivation(
     context: dict,
 ) -> Optional[str]:
     """Generate a contextual motivation message."""
-    system_prompt = MOTIVATION_PROMPT.format(
+    companion = context.get("companion", {})
+    system_prompt = build_motivation_prompt(companion).format(
         stats=json.dumps(context.get("stats", {}), default=str),
         recent_activity=json.dumps(context.get("recent_activity", []), default=str),
         streak=context.get("streak", 0),
@@ -89,7 +91,8 @@ async def generate_insight(
     context: dict,
 ) -> Optional[dict]:
     """Generate a productivity insight."""
-    system_prompt = INSIGHT_PROMPT.format(
+    companion = context.get("companion", {})
+    system_prompt = build_insight_prompt(companion).format(
         stats=json.dumps(context.get("stats", {}), default=str),
         daily_data=json.dumps(context.get("daily_data", []), default=str),
     )
@@ -114,7 +117,8 @@ async def generate_next_action(
     context: dict,
 ) -> Optional[str]:
     """Suggest the next best action."""
-    system_prompt = NEXT_ACTION_PROMPT.format(
+    companion = context.get("companion", {})
+    system_prompt = build_next_action_prompt(companion).format(
         tasks=json.dumps(context.get("tasks", []), default=str),
         stats=json.dumps(context.get("stats", {}), default=str),
         time_of_day=context.get("time_of_day", "afternoon"),
@@ -131,8 +135,9 @@ async def generate_next_action(
 
 # ── Fallback Responses ─────────────────────────────────
 
-def fallback_goal_breakdown(goal_title: str) -> dict:
+def fallback_goal_breakdown(goal_title: str, companion: Optional[dict] = None) -> dict:
     """Deterministic fallback when AI is unavailable."""
+    name = (companion and companion.get("pet_name")) or "Nova"
     words = goal_title.lower().split()
     is_study = any(w in words for w in ["study", "exam", "learn", "course", "class"])
     is_project = any(w in words for w in ["project", "build", "create", "develop", "app"])
@@ -175,7 +180,7 @@ def fallback_goal_breakdown(goal_title: str) -> dict:
     total_min = sum(t["estimated_minutes"] for t in tasks)
     return {
         "intent": "goal_breakdown",
-        "message": f"I've broken down '{goal_title}' into manageable steps. Let's tackle them one at a time.",
+        "message": f"I've mapped out '{goal_title}' into clear, actionable steps. Let's tackle them one by one.",
         "pet_state": "encouraging",
         "plan": {
             "goal_title": goal_title,
@@ -187,21 +192,35 @@ def fallback_goal_breakdown(goal_title: str) -> dict:
     }
 
 
-def fallback_motivation(stats: dict) -> str:
-    """Deterministic fallback motivation."""
+def fallback_motivation(stats: dict, companion: Optional[dict] = None) -> str:
+    """Deterministic fallback motivation adjusted to personality."""
+    personality = (companion and companion.get("personality")) or "balanced"
     streak = stats.get("streak", 0)
     tasks_done = stats.get("tasks_completed_today", 0)
 
-    if streak >= 5:
-        return f"You're on a {streak}-day streak! Keep that momentum going."
-    if tasks_done >= 3:
-        return "Solid progress today. Every completed task builds your confidence."
-    if tasks_done > 0:
-        return "You've started strong. Let's keep the momentum going."
-    return "Ready to make today count? Even one small win matters."
+    if personality == "gentle":
+        if streak >= 5:
+            return f"Wonderful {streak}-day streak! You are doing fantastic, take your time."
+        if tasks_done > 0:
+            return "Great gentle progress today. Every small step matters."
+        return "Whenever you're ready, let's take a calm first step together."
+    elif personality == "strict":
+        if streak >= 5:
+            return f"{streak}-day streak secured. Keep pushing the standard higher."
+        if tasks_done > 0:
+            return f"{tasks_done} tasks down. Keep the momentum locked in."
+        return "Your goals won't achieve themselves. Let's execute today's priority."
+    else:  # balanced
+        if streak >= 5:
+            return f"You're on a {streak}-day streak! Keep that strong momentum going."
+        if tasks_done >= 3:
+            return "Solid progress today. Every completed task builds real confidence."
+        if tasks_done > 0:
+            return "You've started strong. Let's keep the flow going."
+        return "Ready to make today count? Even one small win sets the tone."
 
 
-def fallback_next_action(tasks: list) -> str:
+def fallback_next_action(tasks: list, companion: Optional[dict] = None) -> str:
     """Deterministic next action from task list."""
     todo = [t for t in tasks if t.get("status") == "todo"]
     in_progress = [t for t in tasks if t.get("status") == "in_progress"]

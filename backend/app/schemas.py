@@ -86,9 +86,15 @@ class PetResponse(BaseModel):
     confidence: float
     productivity_score: float
     current_message: str
+    pet_type: str = "nova"
+    personality: str = "balanced"
+    theme: str = "default"
+    accessories: List[str] = []
+    onboarding_done: bool = False
 
     class Config:
         from_attributes = True
+
 
 
 class PetFullResponse(BaseModel):

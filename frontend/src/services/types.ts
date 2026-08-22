@@ -50,7 +50,13 @@ export interface PetProfile {
   confidence: number;
   productivity_score: number;
   current_message: string;
+  pet_type?: string;
+  personality?: string;
+  theme?: string;
+  accessories?: string[];
+  onboarding_done?: boolean;
 }
+
 
 export interface PetFullData {
   pet: PetProfile;

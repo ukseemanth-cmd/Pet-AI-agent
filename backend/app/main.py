@@ -26,7 +26,7 @@ app.add_middleware(
 )
 
 # Import and include routers
-from app.routes import tasks, pet, agent, focus, goals, analytics, achievements, memory  # noqa: E402
+from app.routes import tasks, pet, agent, focus, goals, analytics, achievements, memory, companion  # noqa: E402
 
 app.include_router(tasks.router)
 app.include_router(pet.router)
@@ -36,6 +36,7 @@ app.include_router(goals.router)
 app.include_router(analytics.router)
 app.include_router(achievements.router)
 app.include_router(memory.router)
+app.include_router(companion.router)
 
 
 @app.on_event("startup")

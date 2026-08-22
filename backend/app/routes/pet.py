@@ -38,6 +38,11 @@ def get_pet(db: Session = Depends(get_db)):
             confidence=pet.confidence,
             productivity_score=pet.productivity_score,
             current_message=pet.current_message,
+            pet_type=pet.pet_type or "nova",
+            personality=pet.personality or "balanced",
+            theme=pet.theme or "default",
+            accessories=pet.accessories or [],
+            onboarding_done=bool(pet.onboarding_done),
         ),
         user_xp=user.xp,
         user_level=user.level,
@@ -46,6 +51,7 @@ def get_pet(db: Session = Depends(get_db)):
         total_focus_minutes=user.total_focus_minutes,
         total_tasks_completed=user.total_tasks_completed,
     )
+
 
 
 @router.get("/state")

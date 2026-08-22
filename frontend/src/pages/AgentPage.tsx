@@ -25,6 +25,7 @@ import {
 import { sound } from '../utils/audio';
 
 import { eventBus } from '../utils/events';
+import { useCompanion } from '../context/CompanionContext';
 
 interface AgentPageProps {
   petData: PetFullData | null;
@@ -39,6 +40,7 @@ export const AgentPage: React.FC<AgentPageProps> = ({
   onRefreshData,
   onStartFocus,
 }) => {
+  const { profile } = useCompanion();
   const [isThinking, setIsThinking] = useState(false);
   const [activePlan, setActivePlan] = useState<AgentPlan | null>(null);
   const [isAddingPlan, setIsAddingPlan] = useState(false);
@@ -50,12 +52,14 @@ export const AgentPage: React.FC<AgentPageProps> = ({
   const [overrideMessage, setOverrideMessage] = useState<string | null>(null);
 
   const pet = petData?.pet;
+  const companionName = profile?.pet_name || pet?.name || 'Nova';
   const currentPetState = overrideState || (isThinking ? 'thinking' : pet?.state || 'idle');
   const currentPetMessage =
     overrideMessage ||
     (isThinking
       ? 'Analyzing your request...'
-      : pet?.current_message || "Hey! I'm ready when you are. What are we working on?");
+      : pet?.current_message || `Hey! ${companionName} is ready when you are. What are we working on?`);
+
 
   // Handle Command Bar Submit
   const handleCommandSubmit = async (prompt: string) => {
@@ -172,11 +176,14 @@ export const AgentPage: React.FC<AgentPageProps> = ({
         {/* Animated Pet Companion */}
         <div className="relative">
           <PetRenderer
+            petType={profile?.pet_type}
+            theme={profile?.theme}
+            accessories={profile?.accessories}
             state={currentPetState}
             size="lg"
             onClick={() => {
               setOverrideState('happy');
-              setOverrideMessage("I'm right here with you! Let's get things done.");
+              setOverrideMessage(`${companionName} is right here with you! Let's get things done.`);
               sound.playResponseArrival();
             }}
           />
@@ -186,8 +193,9 @@ export const AgentPage: React.FC<AgentPageProps> = ({
         <PetSpeech
           message={currentPetMessage}
           petState={currentPetState}
-          petName={pet?.name || 'Nova'}
+          petName={companionName}
         />
+
 
         {/* Live Productivity Signals HUD */}
         {pet && <PetHUD pet={pet} />}

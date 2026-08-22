@@ -20,6 +20,8 @@ import {
 import { PetState } from '../../services/types';
 import { eventBus } from '../../utils/events';
 import { sound } from '../../utils/audio';
+import { useCompanion } from '../../context/CompanionContext';
+
 
 const STORAGE_KEY_POS = 'productivity_pet_position';
 const STORAGE_KEY_VIS = 'productivity_pet_visible';
@@ -33,6 +35,8 @@ export const FloatingPet: React.FC<FloatingPetProps> = ({
   onRefreshData,
   onStartFocus,
 }) => {
+  const { profile } = useCompanion();
+
   // Visibility State
   const [isVisible, setIsVisible] = useState<boolean>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_VIS);
@@ -222,7 +226,7 @@ export const FloatingPet: React.FC<FloatingPetProps> = ({
       >
         <Bot className="w-5 h-5 text-cyan-400 group-hover:animate-bounce" />
         <span className="text-xs font-mono font-bold tracking-wider hidden sm:inline">
-          SUMMON NOVA
+          SUMMON {profile?.pet_name?.toUpperCase() || 'COMPANION'}
         </span>
         <Sparkles className="w-3.5 h-3.5 text-cyan-300 animate-spin" />
       </motion.button>
@@ -305,7 +309,14 @@ export const FloatingPet: React.FC<FloatingPetProps> = ({
           onClick={handlePetClick}
           className="cursor-grab active:cursor-grabbing relative"
         >
-          <PetRenderer state={activeState} size={size} />
+          <PetRenderer
+            petType={profile?.pet_type}
+            theme={profile?.theme}
+            accessories={profile?.accessories}
+            state={activeState}
+            size={size}
+          />
+
 
           {/* Subdued Proactive Speech Indicator Dot if not in focus mode */}
           {!isFocusMode && (

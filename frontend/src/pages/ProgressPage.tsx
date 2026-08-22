@@ -6,6 +6,8 @@ import { getAnalytics, generateInsight } from '../services/api';
 import { ProductivityChart } from '../components/Analytics/ProductivityChart';
 import { FocusChart } from '../components/Analytics/FocusChart';
 
+import { CompanionProfileCard } from '../components/PetCustomization/CompanionProfileCard';
+
 export const ProgressPage: React.FC = () => {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [insight, setInsight] = useState<any>(null);
@@ -75,6 +77,14 @@ export const ProgressPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-10">
+      {/* Companion Personal Profile Overview */}
+      <CompanionProfileCard
+        userXP={analytics.xp_total}
+        userLevel={analytics.level}
+        xpForNextLevel={analytics.level * 100}
+        streakDays={analytics.streak_days}
+      />
+
       <div className="flex items-center justify-between gap-4 pb-2 border-b border-white/5">
         <div>
           <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
@@ -86,6 +96,7 @@ export const ProgressPage: React.FC = () => {
           </p>
         </div>
       </div>
+
 
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

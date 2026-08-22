@@ -18,8 +18,10 @@ import { FloatingPetSize, FloatingNotification } from '../components/FloatingPet
 import { PetFullData, PetState, Task } from '../services/types';
 import { getPet, getTasks, startFocusSession } from '../services/api';
 import { sound } from '../utils/audio';
+import { useCompanion } from '../context/CompanionContext';
 
 export const DesktopPetApp: React.FC = () => {
+  const { profile } = useCompanion();
   const [petData, setPetData] = useState<PetFullData | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [size, setSize] = useState<FloatingPetSize>('md');
@@ -27,6 +29,7 @@ export const DesktopPetApp: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isAlwaysOnTop, setIsAlwaysOnTop] = useState(true);
+
 
   // Local state override for immediate AI/XP reactions
   const [overrideState, setOverrideState] = useState<PetState | null>(null);
@@ -149,7 +152,7 @@ export const DesktopPetApp: React.FC = () => {
                     ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
                     : 'text-slate-400 hover:text-white'
                 }`}
-                title="Talk to Nova"
+                title={`Talk to ${profile?.pet_name || 'Companion'}`}
               >
                 <MessageSquare className="w-3.5 h-3.5" />
               </button>
@@ -199,7 +202,14 @@ export const DesktopPetApp: React.FC = () => {
           }}
           className="relative"
         >
-          <PetRenderer state={currentPetState} size={size} />
+          <PetRenderer
+            petType={profile?.pet_type}
+            theme={profile?.theme}
+            accessories={profile?.accessories}
+            state={currentPetState}
+            size={size}
+          />
+
 
           {/* Glowing pulse dot */}
           <div className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4] animate-ping pointer-events-none" />

@@ -102,7 +102,15 @@ class Pet(Base):
     last_state_change = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
+    # ── Companion Personalization ─────────────────────────────
+    pet_type = Column(String(50), default="nova")       # nova, cat, dog, fox, panda, bunny, dragon
+    personality = Column(String(50), default="balanced")  # gentle, balanced, strict
+    theme = Column(String(50), default="default")       # default, midnight, sunset, ocean, forest, neon
+    accessories = Column(JSON, default=list)            # list of accessory strings
+    onboarding_done = Column(Boolean, default=False)    # whether onboarding has been completed
+
     user = relationship("User", back_populates="pet")
+
 
 
 # ── Goals ──────────────────────────────────────────────
