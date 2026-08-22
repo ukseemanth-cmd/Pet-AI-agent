@@ -45,8 +45,26 @@ def get_companion_profile(db: Session = Depends(get_db)):
 def update_companion_profile(data: CompanionProfileUpdate, db: Session = Depends(get_db)):
     pet = db.query(Pet).filter(Pet.user_id == USER_ID).first()
     if not pet:
-        return {"error": "Pet not found"}
-
+        # Create user if missing
+        from app.models.models import User
+        user = db.query(User).filter(User.id == USER_ID).first()
+        if not user:
+            user = User(id=USER_ID, name="Demo User", email="demo@example.com")
+            db.add(user)
+            db.flush()
+        
+        # Create pet
+        pet = Pet(
+            user_id=USER_ID,
+            name=data.pet_name or "Nova",
+            pet_type=data.pet_type or "nova",
+            personality=data.personality or "balanced",
+            theme=data.theme or "default",
+            accessories=data.accessories or [],
+            onboarding_done=data.onboarding_done or False
+        )
+        db.add(pet)
+        db.flush()
     if data.pet_type is not None:
         pet.pet_type = data.pet_type
     if data.pet_name is not None:
