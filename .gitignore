@@ -1,0 +1,43 @@
+# Productivity Pet
+
+## Environment
+.env
+.env.local
+.env.production
+
+## Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+venv/
+.venv/
+env/
+
+## Node
+node_modules/
+frontend/dist/
+frontend/.env.local
+
+## IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Database
+*.db
+*.sqlite3
+
+## Logs
+*.log
