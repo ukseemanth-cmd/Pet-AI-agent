@@ -92,12 +92,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
         theme: selectedTheme,
         accessories: selectedAccessories,
       });
-      setTimeout(() => {
-        onComplete();
-      }, 1000);
+      onComplete();
     } catch (err) {
       console.error('Failed to save companion:', err);
       setIsSaving(false);
+      onComplete();
     }
   };
 
